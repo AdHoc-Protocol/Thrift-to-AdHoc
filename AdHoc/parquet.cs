@@ -393,6 +393,7 @@ namespace org.thrift {
             This field should only be set for types that use BYTE_ARRAY as their
             physical type.
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? unencoded_byte_array_data_bytes; // 1:
             /**
             When present, there is expected to be one element corresponding to each
@@ -464,10 +465,12 @@ namespace org.thrift {
             Readers MUST distinguish between null_count not being present and null_count == 0.
             If null_count is not present, readers MUST NOT assume null_count == 0.
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? null_count; // 3:
             /**
             count of distinct values occurring
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? distinct_count; // 4:
             /**
             Lower and upper bound values for the column, determined by its ColumnOrder.
@@ -495,6 +498,7 @@ namespace org.thrift {
             If this field is not present, readers MUST assume NaNs may be present
             (i.e. MUST assume nan_count &gt; 0 and MAY NOT assume nan_count == 0).
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? nan_count; // 9:
         }
 
@@ -780,6 +784,7 @@ namespace org.thrift {
             (e.g. a low cardinality INT col could have this set to 3).  Note that this is
             in the schema, and therefore fixed for the entire file.
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int? type_length; // 2:
             /**
             repetition of the field. The root of the schema does not have a repetition_type.
@@ -908,10 +913,12 @@ namespace org.thrift {
             repetition levels and definition levels are always using RLE (without size in it)
             Length of the definition levels
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int definition_levels_byte_length; // 5:
             /**
             Length of the repetition levels
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int repetition_levels_byte_length; // 6:
             /**
             Whether the values are compressed.
@@ -990,6 +997,7 @@ namespace org.thrift {
             /**
             The size of bitset in bytes *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int numBytes; // 1:
             /**
             The algorithm for setting bits. *
@@ -1013,10 +1021,12 @@ namespace org.thrift {
             /**
             Uncompressed page size in bytes (not including this header) *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int uncompressed_page_size; // 2:
             /**
             Compressed (and potentially encrypted) page size in bytes, not including this header *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int compressed_page_size; // 3:
             /**
             The 32-bit CRC checksum for the page, to be calculated as follows:
@@ -1034,6 +1044,7 @@ namespace org.thrift {
             If enabled, this allows for disabling checksumming in HDFS if only a few
             pages need to be read.
             */
+            // physics: an unpredictable value spread over the whole range - [X] adds a byte to every packet, drop it
             [X] int? crc; // 4:
             /**
             Headers for page specific data.  One only will be set.
@@ -1089,6 +1100,7 @@ namespace org.thrift {
             /**
             number of pages of this type with this encoding *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int count; // 3:
         }
 
@@ -1120,11 +1132,13 @@ namespace org.thrift {
             /**
             total byte size of all uncompressed pages in this column chunk (including the headers) *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long total_uncompressed_size; // 6:
             /**
             total byte size of all compressed, and potentially encrypted, pages
             in this column chunk (including the headers) *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long total_compressed_size; // 7:
             /**
             Optional key/value metadata *
@@ -1133,14 +1147,17 @@ namespace org.thrift {
             /**
             Byte offset from beginning of file to first data page *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long data_page_offset; // 9:
             /**
             Byte offset from beginning of file to root index page *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? index_page_offset; // 10:
             /**
             Byte offset from the beginning of file to first (only) dictionary page *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? dictionary_page_offset; // 11:
             /**
             optional statistics for this column chunk
@@ -1155,6 +1172,7 @@ namespace org.thrift {
             /**
             Byte offset from beginning of file to Bloom filter data. *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? bloom_filter_offset; // 14:
             /**
             Size of Bloom filter data including the serialized header, in bytes.
@@ -1163,6 +1181,7 @@ namespace org.thrift {
             Writers should write this field so readers can read the bloom filter
             in a single I/O.
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int? bloom_filter_length; // 15:
             /**
             Optional statistics to help estimate total memory when converted to in-memory
@@ -1228,6 +1247,7 @@ namespace org.thrift {
             Writers should set this field to 0 if no ColumnMetaData has been written outside
             the footer.
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long file_offset; // 2:
             public const long file_offset_default = 0;
             /**
@@ -1240,18 +1260,22 @@ namespace org.thrift {
             /**
             File offset of ColumnChunk's OffsetIndex *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? offset_index_offset; // 4:
             /**
             Size of ColumnChunk's OffsetIndex, in bytes *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int? offset_index_length; // 5:
             /**
             File offset of ColumnChunk's ColumnIndex *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? column_index_offset; // 6:
             /**
             Size of ColumnChunk's ColumnIndex, in bytes *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int? column_index_length; // 7:
             /**
             Crypto metadata of encrypted columns *
@@ -1272,6 +1296,7 @@ namespace org.thrift {
             /**
             Total byte size of all the uncompressed column data in this row group *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long total_byte_size; // 2:
             /**
             Number of rows in this row group *
@@ -1286,11 +1311,13 @@ namespace org.thrift {
             Byte offset from beginning of file to first page (data or dictionary)
             in this row group *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? file_offset; // 5:
             /**
             Total byte size of all compressed (and potentially encrypted) column data
             in this row group *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? total_compressed_size; // 6:
             /**
             Row group ordinal in the file *
@@ -1434,17 +1461,20 @@ namespace org.thrift {
             /**
             Offset of the page in the file *
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long offset; // 1:
             /**
             Size of the page, including header. Equal to the sum of the page's
             PageHeader.compressed_page_size and the size of the serialized PageHeader.
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int compressed_page_size; // 2:
             /**
             Index within the RowGroup of the first row of the page. When an
             OffsetIndex is present, pages must begin on row boundaries
             (repetition_level = 0).
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long first_row_index; // 3:
         }
 
@@ -1605,6 +1635,7 @@ namespace org.thrift {
             readers should accept "1" and "2" interchangeably.  All other versions are
             reserved for potential future use-cases.
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int version; // 1:
             /**
             Parquet schema for this file.  This schema contains metadata for all the columns.

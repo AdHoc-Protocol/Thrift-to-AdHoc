@@ -1506,6 +1506,7 @@ namespace org.thrift {
             /**
             sequence number within primary key
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int key_seq; // 4:
             /**
             primary key name
@@ -1554,6 +1555,7 @@ namespace org.thrift {
             /**
             sequence within foreign key
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int key_seq; // 7:
             /**
             what happens to foreign key when parent key is updated
@@ -1606,6 +1608,7 @@ namespace org.thrift {
             /**
             sequence number within unique constraint
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int key_seq; // 5:
             /**
             unique key name
@@ -1843,6 +1846,7 @@ namespace org.thrift {
             string dbName; // 1:
             string tableName; // 2:
             string[,,] partNames; // 3:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? writeId; // 4:
             public const long writeId_default = -1;
             string validWriteIdList; // 5:
@@ -2108,6 +2112,7 @@ namespace org.thrift {
             string tblName; // 3:
             Set<string> tablesUsed; // 4:
             string validTxnList; // 5:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long? materializationTime; // 6:
             SourceTable[,,] sourceTables; // 7:
         }
@@ -2141,6 +2146,7 @@ namespace org.thrift {
         }
 
         public class StringColumnStatsData {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long maxColLen; // 1:
             double avgColLen; // 2:
             [X] long numNulls; // 3:
@@ -2149,6 +2155,7 @@ namespace org.thrift {
         }
 
         public class BinaryColumnStatsData {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long maxColLen; // 1:
             double avgColLen; // 2:
             [X] long numNulls; // 3:
@@ -2173,6 +2180,7 @@ namespace org.thrift {
         }
 
         public class Date {
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long daysSinceEpoch; // 1:
         }
 
@@ -2186,6 +2194,7 @@ namespace org.thrift {
         }
 
         public class Timestamp {
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long secondsSinceEpoch; // 1:
         }
 
@@ -2347,6 +2356,7 @@ namespace org.thrift {
             */
             PrincipalType? ownerType; // 18:
             public const int ownerType_default = 1; // PrincipalType.USER
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? writeId; // 19:
             public const long writeId_default = -1;
             bool? isStatsCompliant; // 20:
@@ -2360,6 +2370,7 @@ namespace org.thrift {
             /**
             id of the table. It will be ignored if set. It's only for
             */
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long? id; // 25:
             /**
             read purposes
@@ -2373,13 +2384,17 @@ namespace org.thrift {
             /**
             txnId associated with the table creation
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? txnId; // 28:
         }
 
         public class SourceTable {
             Table table; // 1:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long insertedCount; // 2:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long updatedCount; // 3:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long deletedCount; // 4:
         }
 
@@ -2396,6 +2411,7 @@ namespace org.thrift {
             Map<string, string> parameters; // 7:
             PrincipalPrivilegeSet privileges; // 8:
             string catName; // 9:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? writeId; // 10:
             public const long writeId_default = -1;
             bool? isStatsCompliant; // 11:
@@ -2437,6 +2453,7 @@ namespace org.thrift {
             PartitionSpecWithSharedSD sharedSDPartitionSpec; // 4:
             PartitionListComposingSpec partitionList; // 5:
             string catName; // 6:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? writeId; // 7:
             public const long writeId_default = -1;
             bool? isStatsCompliant; // 8:
@@ -2460,6 +2477,7 @@ namespace org.thrift {
             /**
             writeId for the current query that updates the stats
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? writeId; // 3:
             public const long writeId_default = -1;
             /**
@@ -2630,6 +2648,7 @@ namespace org.thrift {
             /**
             table id
             */
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long? id; // 9:
             public const long id_default = -1;
             bool? skipColumnSchemaForPartition; // 10:
@@ -2664,6 +2683,7 @@ namespace org.thrift {
             /**
             table id
             */
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long? id; // 7:
             public const long id_default = -1;
         }
@@ -2801,6 +2821,7 @@ namespace org.thrift {
             /**
             table id
             */
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long? id; // 10:
             public const long id_default = -1;
             bool? skipColumnSchemaForPartition; // 11:
@@ -2848,6 +2869,7 @@ namespace org.thrift {
         Structs for transaction and locks
         */
         public class TxnInfo {
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long id; // 1:
             TxnState state; // 2:
             /**
@@ -2860,10 +2882,13 @@ namespace org.thrift {
             string hostname; // 4:
             string agentInfo; // 5:
             public const string agentInfo_default = "Unknown";
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int? heartbeatCount; // 6:
             public const int heartbeatCount_default = 0;
             string metaInfo; // 7:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long? startedTime; // 8:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long? lastHeartbeatTime; // 9:
         }
 
@@ -2905,6 +2930,7 @@ namespace org.thrift {
         }
 
         public class AbortTxnRequest {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long txnid; // 1:
             string replPolicy; // 2:
             TxnType? txn_type; // 3:
@@ -2923,6 +2949,7 @@ namespace org.thrift {
         }
 
         public class WriteEventInfo {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long writeId; // 1:
             string database; // 2:
             string table; // 3:
@@ -2945,12 +2972,16 @@ namespace org.thrift {
 
         public class UpdateTransactionalStatsRequest {
             [X] long tableId; // 1:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long insertCount; // 2:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long updatedCount; // 3:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long deletedCount; // 4:
         }
 
         public class CommitTxnRequest {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long txnid; // 1:
             string replPolicy; // 2:
             /**
@@ -2994,6 +3025,7 @@ namespace org.thrift {
             /**
             write id to be used to get the current txn id
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? writeId; // 3:
         }
 
@@ -3016,6 +3048,7 @@ namespace org.thrift {
             /**
             Minimum write id which maps to a opened txn
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? minOpenWriteId; // 4:
             /**
             Bit array to identify the aborted write ids in invalidWriteIds list
@@ -3034,7 +3067,9 @@ namespace org.thrift {
         Map for allocated write id against the txn for which it is allocated
         */
         public class TxnToWriteId {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long txnId; // 1:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long writeId; // 2:
         }
 
@@ -3072,16 +3107,19 @@ namespace org.thrift {
         }
 
         public class MaxAllocatedTableWriteIdResponse {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long maxWriteId; // 1:
         }
 
         public class SeedTableWriteIdsRequest {
             string dbName; // 1:
             string tableName; // 2:
+            // physics: an unpredictable value spread over the whole range - [X] adds a byte to every packet, drop it
             [X] long seedWriteId; // 3:
         }
 
         public class SeedTxnIdRequest {
+            // physics: an unpredictable value spread over the whole range - [X] adds a byte to every packet, drop it
             [X] long seedTxnId; // 1:
         }
 
@@ -3103,6 +3141,7 @@ namespace org.thrift {
 
         public class LockRequest {
             LockComponent[,,] component; // 1:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? txnid; // 2:
             /**
             used in 'show locks' to help admins find who has open locks
@@ -3130,6 +3169,7 @@ namespace org.thrift {
 
         public class CheckLockRequest {
             [X] long lockid; // 1:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? txnid; // 2:
             [X] long? elapsed_ms; // 3:
         }
@@ -3144,6 +3184,7 @@ namespace org.thrift {
             string partname; // 3:
             bool? isExtended; // 4:
             public const bool isExtended_default = false;
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? txnid; // 5:
             string catname; // 6:
             public const string catname_default = "hive";
@@ -3156,11 +3197,13 @@ namespace org.thrift {
             string partname; // 4:
             LockState state; // 5:
             LockType Type; // 6:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? txnid; // 7:
             [X] long lastheartbeat; // 8:
             [X] long? acquiredat; // 9:
             string user; // 10:
             string hostname; // 11:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int? heartbeatCount; // 12:
             public const int heartbeatCount_default = 0;
             string agentInfo; // 13:
@@ -3174,6 +3217,7 @@ namespace org.thrift {
             string catName; // 1:
             string dbName; // 2:
             string tableName; // 3:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long txnId; // 4:
         }
 
@@ -3183,6 +3227,7 @@ namespace org.thrift {
 
         public class HeartbeatRequest {
             [X] long? lockid; // 1:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? txnid; // 2:
         }
 
@@ -3211,6 +3256,7 @@ namespace org.thrift {
         }
 
         public class CompactionInfoStruct {
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long id; // 1:
             string dbname; // 2:
             string tablename; // 3:
@@ -3222,9 +3268,11 @@ namespace org.thrift {
             string state; // 9:
             string workerId; // 10:
             [X] long? start; // 11:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? highestWriteId; // 12:
             string errorMessage; // 13:
             bool? hasoldabort; // 14:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long? enqueueTime; // 15:
             [X] long? retryRetention; // 16:
             string poolname; // 17:
@@ -3242,6 +3290,7 @@ namespace org.thrift {
             string partitionname; // 3:
             CompactionMetricsMetricType Type; // 4:
             [X] int metricvalue; // 5:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int version; // 6:
             [X] int threshold; // 7:
         }
@@ -3258,6 +3307,7 @@ namespace org.thrift {
         }
 
         public class CompactionResponse {
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long id; // 1:
             string state; // 2:
             bool accepted; // 3:
@@ -3265,6 +3315,7 @@ namespace org.thrift {
         }
 
         public class ShowCompactRequest {
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long? id; // 1:
             string poolName; // 2:
             string dbName; // 3:
@@ -3288,22 +3339,30 @@ namespace org.thrift {
             /**
             Highest Txn ID handled by this compaction
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? hightestTxnId; // 9:
             string metaInfo; // 10:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long? endTime; // 11:
             string hadoopJobId; // 12:
             public const string hadoopJobId_default = "None";
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long? id; // 13:
             string errorMessage; // 14:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long? enqueueTime; // 15:
             string workerVersion; // 16:
             string initiatorId; // 17:
             string initiatorVersion; // 18:
             [X] long? cleanerStart; // 19:
             string poolName; // 20:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? nextTxnId; // 21:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? txnId; // 22:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long? commitTime; // 23:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? hightestWriteId; // 24:
         }
 
@@ -3345,7 +3404,9 @@ namespace org.thrift {
         }
 
         public class AddDynamicPartitions {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long txnid; // 1:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long writeid; // 2:
             string dbname; // 3:
             string tablename; // 4:
@@ -3356,7 +3417,9 @@ namespace org.thrift {
 
         public class BasicTxnInfo {
             bool isnull; // 1:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long? time; // 2:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? txnid; // 3:
             string dbname; // 4:
             string tablename; // 5:
@@ -3402,6 +3465,7 @@ namespace org.thrift {
         }
 
         public class NotificationEventsCountResponse {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long eventsCount; // 1:
         }
 
@@ -3464,7 +3528,9 @@ namespace org.thrift {
         }
 
         public class WriteNotificationLogRequest {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long txnId; // 1:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long writeId; // 2:
             string db; // 3:
             string table; // 4:
@@ -3616,6 +3682,7 @@ namespace org.thrift {
             /**
             table id
             */
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long? id; // 11:
             public const long id_default = -1;
         }
@@ -3722,6 +3789,7 @@ namespace org.thrift {
             bool cascade; // 5:
             bool? softDelete; // 6:
             public const bool softDelete_default = false;
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? txnId; // 7:
             public const long txnId_default = 0;
             bool? deleteManagedDir; // 8:
@@ -4020,7 +4088,9 @@ namespace org.thrift {
 
         public class SchemaVersion {
             ISchemaName schema; // 1:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int version; // 2:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long createdAt; // 3:
             FieldSchema[,,] cols; // 4:
             SchemaVersionState? state; // 5:
@@ -4033,6 +4103,7 @@ namespace org.thrift {
 
         public class SchemaVersionDescriptor {
             ISchemaName schema; // 1:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int version; // 2:
         }
 
@@ -4162,6 +4233,7 @@ namespace org.thrift {
             string tableName; // 3:
             Partition[,,] partitions; // 4:
             EnvironmentContext environmentContext; // 5:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? writeId; // 6:
             public const long writeId_default = -1;
             string validWriteIdList; // 7:
@@ -4191,6 +4263,7 @@ namespace org.thrift {
             /**
             txnId associated with the rename operation
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? txnId; // 7:
             /**
             non-blocking rename
@@ -4207,6 +4280,7 @@ namespace org.thrift {
             string tableName; // 3:
             Table table; // 4:
             EnvironmentContext environmentContext; // 5:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? writeId; // 6:
             public const long writeId_default = -1;
             string validWriteIdList; // 7:
@@ -4263,6 +4337,7 @@ namespace org.thrift {
             /**
             table id
             */
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long? id; // 6:
             public const long id_default = -1;
         }
@@ -4280,6 +4355,7 @@ namespace org.thrift {
             /**
             table id
             */
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long? id; // 6:
             public const long id_default = -1;
         }
@@ -4297,6 +4373,7 @@ namespace org.thrift {
             /**
             table id
             */
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long? id; // 6:
             public const long id_default = -1;
         }
@@ -4315,6 +4392,7 @@ namespace org.thrift {
             /**
             table id
             */
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long? id; // 6:
             public const long id_default = -1;
             bool? skipColumnSchemaForPartition; // 7:
@@ -4349,6 +4427,7 @@ namespace org.thrift {
             /**
             table id
             */
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long? id; // 7:
             public const long id_default = -1;
         }
@@ -4370,6 +4449,7 @@ namespace org.thrift {
             /**
             table id
             */
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long? id; // 9:
             public const long id_default = -1;
             bool? skipColumnSchemaForPartition; // 10:
@@ -4460,6 +4540,7 @@ namespace org.thrift {
         }
 
         public class GetAllWriteEventInfoRequest {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long txnId; // 1:
             string dbName; // 2:
             string tableName; // 3:
@@ -7392,6 +7473,7 @@ namespace org.thrift {
         Arguments of ThriftHiveMetastore.remove_master_key().
         */
         public class ThriftHiveMetastore_remove_master_key_Args {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int key_seq; // 1:
         }
 
@@ -7503,6 +7585,7 @@ namespace org.thrift {
         Arguments of ThriftHiveMetastore.get_latest_txnid_in_conflict().
         */
         public class ThriftHiveMetastore_get_latest_txnid_in_conflict_Args {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long txnId; // 1:
         }
 
@@ -7544,6 +7627,7 @@ namespace org.thrift {
         Arguments of ThriftHiveMetastore.add_write_ids_to_min_history().
         */
         public class ThriftHiveMetastore_add_write_ids_to_min_history_Args {
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long txnId; // 1:
             [Val: X] Map<string, long> writeIds; // 2:
         }
@@ -7794,6 +7878,7 @@ namespace org.thrift {
         */
         public class ThriftHiveMetastore_update_compactor_state_Args {
             CompactionInfoStruct cr; // 1:
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long txn_id; // 2:
         }
 
@@ -7901,6 +7986,7 @@ namespace org.thrift {
         */
         public class ThriftHiveMetastore_set_hadoop_jobid_Args {
             string jobId; // 1:
+            // physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]
             [X] long cq_id; // 2:
         }
 
@@ -8604,6 +8690,7 @@ namespace org.thrift {
         public class ThriftHiveMetastore_get_lock_materialization_rebuild_Args {
             string dbName; // 1:
             string tableName; // 2:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long txnId; // 3:
         }
 
@@ -8621,6 +8708,7 @@ namespace org.thrift {
         public class ThriftHiveMetastore_heartbeat_lock_materialization_rebuild_Args {
             string dbName; // 1:
             string tableName; // 2:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long txnId; // 3:
         }
 

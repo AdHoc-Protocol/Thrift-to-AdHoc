@@ -281,6 +281,7 @@ namespace org.thrift {
         public class Column {
             Binary[,,] name; // 1:
             Binary[,,] value; // 2:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long? timestamp; // 3:
             [X] int? ttl; // 4:
         }
@@ -456,6 +457,7 @@ namespace org.thrift {
             Binary[,,] finish; // 2:
             bool reversed; // 3:
             public const bool reversed_default = false;
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int count; // 4:
             public const int count_default = 100;
         }
@@ -490,6 +492,7 @@ namespace org.thrift {
         public class IndexClause {
             IndexExpression[,,] expressions; // 1:
             Binary[,,] start_key; // 2:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int count; // 3:
             public const int count_default = 100;
         }
@@ -508,6 +511,7 @@ namespace org.thrift {
             string start_token; // 3:
             string end_token; // 4:
             IndexExpression[,,] row_filter; // 6:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int count; // 5:
             public const int count_default = 100;
         }
@@ -527,6 +531,7 @@ namespace org.thrift {
 
         public class KeyCount {
             Binary[,,] key; // 1:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int count; // 2:
         }
 
@@ -534,6 +539,7 @@ namespace org.thrift {
         Note that the timestamp is only optional in case of counter deletion.
         */
         public class Deletion {
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long? timestamp; // 1:
             Binary[,,] super_column; // 2:
             SlicePredicate predicate; // 3:
@@ -726,12 +732,14 @@ namespace org.thrift {
         public class CqlResult {
             CqlResultType Type; // 1:
             CqlRow[,,] rows; // 2:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int? num; // 3:
             CqlMetadata schema; // 4:
         }
 
         public class CqlPreparedResult {
             [X] int itemId; // 1:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int count; // 2:
             string[,,] variable_types; // 3:
             string[,,] variable_names; // 4:
@@ -743,6 +751,7 @@ namespace org.thrift {
         public class CfSplit {
             string start_token; // 1:
             string end_token; // 2:
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long row_count; // 3:
         }
 
@@ -773,6 +782,7 @@ namespace org.thrift {
             ColumnSlice[,,] column_slices; // 3:
             bool? reversed; // 4:
             public const bool reversed_default = false;
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] int? count; // 5:
             public const int count_default = 1000;
             ConsistencyLevel? consistency_level; // 6:
@@ -1051,6 +1061,7 @@ namespace org.thrift {
         public class Cassandra_remove_Args {
             Binary[,,] key; // 1:
             ColumnPath column_path; // 2:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long timestamp; // 3:
             ConsistencyLevel consistency_level; // 4:
             public const int consistency_level_default = 1; // ConsistencyLevel.ONE

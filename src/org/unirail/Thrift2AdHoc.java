@@ -1078,6 +1078,39 @@ public class Thrift2AdHoc {
 			}
 		}
 
+		/**
+		 * A note on the field when its own name or documentation says the values are systematically large,
+		 * uniformly spread, or pinned to a floor - cases where the ZigZag varint inherited from Thrift Compact
+		 * costs more than a fixed-width field. Varint wins only while the typical distance from the base stays
+		 * under about two million and always loses past 268,435,455, so the decision belongs to whoever knows the
+		 * data. The converter never changes the attribute, it only asks the question at the place it matters.
+		 */
+		String physics(Field f) {
+			switch (f.type.base) {
+				case "i16": case "i32": case "i64": break;
+				default: return null;
+			}
+			String n = f.name.toLowerCase();
+			String text = (f.name + " " + f.doc).toLowerCase();
+			boolean wide = f.type.base.equals("i64");
+
+			if (n.matches(".*(hash|checksum|crc|digest|fingerprint|signature|guid|uuid|salt|nonce|seed).*"))
+				return "physics: an unpredictable value spread over the whole range - [X] adds a byte to every packet, drop it";
+
+			if (wide && (n.matches(".*(time|timestamp|_ts|date|epoch|expir|deadline|created|modified|accessed|updated|since|until|ttl).*")
+					|| text.contains("epoch") || text.contains("since the unix") || text.contains("milliseconds since") || text.contains("seconds since")))
+				return "physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime";
+
+			if (n.matches(".*(offset|position|size|length|count|num|total|bytes|len)$|^(offset|size|length|count|total)$")
+					|| n.matches(".*(sequence|seqno|seq|index|version|generation|revision|serial|txnid|writeid|rowid|lsn)$"))
+				return "physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]";
+
+			if (n.matches("^(id|key)$|.*_(id|key)$") && wide)
+				return "physics: an identifier - if it is monotonic and already past 268,435,455, [X] is a permanent loss; drop it or use [A]";
+
+			return null;
+		}
+
 		/** Attributes plus type for a TYPEDEF or wrapper field: the varint attribute belongs on the alias itself. */
 		String typedefBody(Type t, String prefix, Doc d) {
 			List<String> attrs = new ArrayList<>();
@@ -1130,6 +1163,8 @@ public class Thrift2AdHoc {
 			taken.add(name);
 
 			StringBuilder b = new StringBuilder();
+			String note = physics(f);
+			if (note != null) b.append("// ").append(note).append('\n').append(ind);
 			for (String t : targeted) b.append('[').append(t).append("] ");
 			if (!attrs.isEmpty()) b.append('[').append(String.join(", ", attrs)).append("] ");
 			b.append(type).append(' ').append(name).append(';');

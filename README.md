@@ -32,6 +32,67 @@ Sample schemas fetched by `fetch-samples.sh` (all verified to download):
 | `cassandra.thrift` | https://github.com/apache/cassandra/blob/cassandra-2.2/interface/cassandra.thrift |
 | `hive_metastore.thrift` | https://github.com/apache/hive/blob/master/standalone-metastore/metastore-common/src/main/thrift/hive_metastore.thrift |
 
+## Before and after
+
+`samples/cassandra.thrift` (945 lines) — [source](samples/cassandra.thrift) → [result](AdHoc/cassandra.cs)
+
+```thrift
+exception InvalidRequestException {
+    1: required string why
+}
+
+struct ColumnPath {
+    3: required string column_family,
+    4: optional binary super_column,
+    5: optional binary column,
+}
+
+service Cassandra {
+  # auth methods
+  void login(1: required AuthenticationRequest auth_request) throws (1:AuthenticationException authnx, 2:AuthorizationException authzx),
+
+  # set keyspace
+  void set_keyspace(1: required string keyspace) throws (1:InvalidRequestException ire),
+
+  # retrieval methods
+  ColumnOrSuperColumn get(1:required binary key,
+                          2:required ColumnPath column_path,
+                          3:required ConsistencyLevel consistency_level=ConsistencyLevel.ONE)
+                      throws (1:InvalidRequestException ire, 2:NotFoundException nfe, 3:UnavailableException ue, 4:TimedOutException te),
+  // … 42 more methods …
+}
+```
+
+```csharp
+public class InvalidRequestException {
+    string why; // 1:
+}
+
+public class ColumnPath {
+    string column_family; // 3:
+    Binary[,,] super_column; // 4:
+    Binary[,,] column; // 5:
+}
+
+public class Cassandra_get_Args {
+    Binary[,,] key; // 1:
+    ColumnPath column_path; // 2:
+    ConsistencyLevel consistency_level; // 3:
+    public const int consistency_level_default = 1; // ConsistencyLevel.ONE
+}
+
+public class Cassandra_get_Result {
+    ColumnOrSuperColumn success; // 0:
+}
+// … the connection, where every method of the service becomes one line …
+interface Cassandra {
+    (L____________, Cassandra_login_Result, AuthenticationException, AuthorizationException) login(Cassandra_login_Args req);
+    (L____________, Cassandra_set_keyspace_Result, InvalidRequestException) set_keyspace(Cassandra_set_keyspace_Args req);
+    (L____________, Cassandra_get_Result, InvalidRequestException, NotFoundException, UnavailableException, TimedOutException) get(Cassandra_get_Args req);
+    // … 42 more …
+}
+```
+
 ## Commands
 
 ```bash
@@ -64,9 +125,9 @@ which is how the samples are laid out.
 | `optional` | `T?` for value types | reference types are optional by nature in AdHoc |
 | field default | `public const <type> <field>_default = …;` in the same pack | same rules as `const`: enum members become their number, containers are skipped with a comment |
 | annotation `(k="v")` | `[Annotation("k","v")]` | repeatable; also captured from type annotations; not read by AdHoc |
-| `bool` `i8`/`byte` `double` `string` | `bool` `sbyte` `double` `string` | fixed-width in the Compact protocol, so no varint attribute |
-| `i16` `i32` `i64` | `[X] short` `[X] int` `[X] long` | Compact encodes these as **ZigZag varint** - see *Number distribution* below |
-| `binary` | `Binary[,,]` | |
+| `bool` `i8`/`byte` `double` `string` | `bool` `sbyte` `double` `string` | no varint attribute: a one-byte type has nothing to drop, and floats and strings are not integers |
+| `i16` `i32` `i64` | `[X] short` `[X] int` `[X] long` | Thrift Compact chose **ZigZag varint** for these, which is a statement about the data - see *Number physics* below |
+| `binary` | `Binary[,,]` | not an integer, so no varint attribute |
 | `uuid` | `[D(16)] Binary[]` | |
 | `list<T>` | `T[,,]` | bound comes from `_DefaultMaxLengthOf`, not a per-field `[D]` |
 | `set<T>` | `Set<T>` | as above; an `i16/i32/i64` element adds `[Key: X]` |
@@ -81,25 +142,53 @@ which is how the samples are laid out.
 Two hosts are emitted, `Client` (Left) and `Server` (Right), each requesting all six target languages. A source
 with no `service` gets a single bidirectional state over every pack instead of RPC declarations.
 
-## Number distribution: why the integers carry `[X]`
+## Number physics: why the integers carry `[X]`
 
-AdHoc asks a schema to say **where a number's values sit**, and encodes accordingly. Thrift already answers
-that question through its wire format: the **Compact protocol** encodes `i16`, `i32` and `i64` as ZigZag
-varint - small magnitudes of either sign cost one byte, and the cost grows with the distance from zero. That is
-exactly AdHoc's `[X]`, so every such field is emitted as `[X] short` / `[X] int` / `[X] long`.
+AdHoc asks a schema to say **where a number's values actually sit**, and lays out the wire from that. The
+source's own storage is no argument either way, because AdHoc builds its own frame; what carries over is what
+the source reveals about the data.
 
-`i8`, `double`, `bool`, `string` and `binary` are fixed-width in Compact and carry no attribute. On a collection
-the attribute applies to the elements; a `Set` key and a `Map` key / value take the `[Key: X]` and `[Val: X]`
-forms, each in its own bracket. A `typedef` of an integer carries the attribute on the alias itself, and the
-agent propagates it to every field that uses the alias.
+Thrift reveals it once: the **Compact protocol** encodes `i16`, `i32` and `i64` as ZigZag varint. That was a
+deliberate bet that such fields hold small magnitudes of either sign, and it is exactly what AdHoc's `[X]` says,
+so those fields are emitted as `[X] short` / `[X] int` / `[X] long`. The other scalars carry no attribute for
+reasons of their own: `i8` and `bool` already fit in a byte, so there are no leading zero groups to drop, and
+`double`, `string` and `binary` are not integers at all.
 
-> **Refine this by hand.** `[X]` pays off when values cluster near zero. A field you know to be uniformly
-> distributed across its whole range - a hash, a checksum, a scaled coordinate, a monotonic id past ~268 million -
-> is **cheaper without it**: delete the attribute and the field goes back to fixed width. A field that clusters at
-> a floor or a ceiling is better served by `[A(min)]` or `[V(max)]`. The converter cannot know which is which; it
-> only repeats what the Compact protocol already assumes.
+On a collection the attribute applies to the elements; a `Set` key and a `Map` key / value take the `[Key: X]`
+and `[Val: X]` forms, each in its own bracket. A `typedef` of an integer carries the attribute on the alias, and
+the agent propagates it to every field that uses it.
 
-Across the shipped samples 405 fields carry a varint attribute.
+### Check the arithmetic
+
+Varint spends one bit in every eight on a continuation flag, so it pays only while the value stays near its base:
+
+| typical distance from zero | varint bytes | against a fixed `int` |
+|:--|--:|:--|
+| 0 … 127 | 1 | saves 3 bytes |
+| 128 … 16 383 | 2 | saves 2 |
+| 16 384 … 2 097 151 | 3 | saves 1 |
+| 2 097 152 … 268 435 455 | 4 | breaks even |
+| past 268 435 455 | 5+ | **loses, on every packet, forever** |
+
+So an epoch-millisecond timestamp, a monotonic id that has grown past ~268 million, a hash or a checksum is a
+**loss** with `[X]` — not because Thrift stored it one way or another, but because its values are systematically
+large or uniformly spread. Delete the attribute there and the field returns to fixed width.
+
+Where a field's name, documentation or annotation gives that away, the converter says so **on the field**, and
+leaves the decision to whoever knows the data:
+
+```csharp
+// physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
+[X] long create_time; // 3:
+
+// physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
+[X] int key_seq; // 4:
+```
+
+The four notes it can emit cover wall-clock times, counters and offsets, identifiers, and unpredictable values
+(hashes, checksums, uuids, nonces). No attribute is ever invented from a guess — only `[X]`, which Thrift itself
+declared, is emitted; everything else is a comment. Across the shipped samples 405 fields carry the attribute and
+133 carry a physics note.
 
 ## Time
 

@@ -65,6 +65,7 @@ namespace org.thrift {
         Log is a timed even with an arbitrary set of tags.
         */
         public class Log {
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long timestamp; // 1:
             Tag[,,] fields; // 2:
         }
@@ -108,6 +109,7 @@ namespace org.thrift {
             a bit field used to propagate sampling decisions. 1 signifies a SAMPLED span, 2 signifies a DEBUG span.
             */
             [X] int flags; // 7:
+            // physics: looks like a wall-clock time, always far above 2^28 - [X] costs a byte per packet; drop it, or model the instant as DateTime
             [X] long startTime; // 8:
             [X] long duration; // 9:
             Tag[,,] tags; // 10:
@@ -158,6 +160,7 @@ namespace org.thrift {
             each batch, so that the Jaeger backend components could detect and report
             missing packets (especially when using the UDP transport).
             */
+            // physics: a counter or an offset - it only grows, so [A] (clustered at the floor) fits better than [X]
             [X] long? seqNo; // 3:
             ClientStats stats; // 4:
         }
